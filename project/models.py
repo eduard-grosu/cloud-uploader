@@ -10,6 +10,10 @@ class User(UserMixin, db.Model):
 class File(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.Text, db.ForeignKey('user.email'))
-    filename = db.Column(db.Text)
-    content = db.Column(db.LargeBinary)
+    
+    name = db.Column(db.Text)
+    path = db.Column(db.Text)
     salt = db.Column(db.LargeBinary)
+
+    is_public = db.Column(db.Boolean, default=False)
+    unique_id = db.Column(db.Text, default=None)

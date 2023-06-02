@@ -27,24 +27,44 @@
   {% for item in items %}
     <!-- Generate the modal opening link -->
     <li class="py-2">
-      <a href="#" class="openModal cursor-pointer underline text-blue-500" data-modal="modal{{ loop.index }}">
-        {{ item.filename }}
+      <a href="#" target="_blank" class="openModal cursor-pointer underline text-blue-500" data-modal="modal{{ loop.index }}">
+        {{ item.name }}
       </a>
-      <button class="deleteButton ml-2 bg-red-500 text-white py-1 px-2 rounded" onclick="window.location.href='/files/delete/{{ item.id }}'">Delete</button>
-      <button class="previewButton ml-2 bg-blue-500 text-white py-1 px-2 rounded" onclick="window.location.href='/files/download/{{ item.id }}'">Download</button>
+      <button class="deleteButton ml-2 bg-red-500 text-white py-1 px-2 rounded" onclick="window.location.href='/files/delete/{{ item.unique_id }}'">Delete</button>
+      <button class="previewButton ml-2 bg-blue-500 text-white py-1 px-2 rounded" onclick="window.location.href='/files/download/{{ item.unique_id }}'">Download</button>
     </li>
 
     <!-- Generate the modal -->
     <div id="modal{{ loop.index }}" class="modal hidden fixed top-0 left-0 w-full h-full flex items-center justify-center" style="background-color: rgba(0,0,0,0.5);">
       <div class="bg-white rounded shadow-lg p-4 sm:p-8 mx-2 sm:mx-4 max-w-full sm:max-w-xl md:max-w-2xl lg:max-w-3xl overflow-auto text-center">
-        <h1 class="text-xl sm:text-2xl font-bold mb-4">{{ item.filename }}</h1>
-        {% if item.filename.endswith('.png') %}
-          <p class="mb-6">test</p>
+        <h1 class="text-xl sm:text-2xl font-bold mb-4">{{ item.name }}</h1>
+        {% if item.name.endswith('.png') %}
+          <a href="/files/preview/{{ item.unique_id }}" target="_blank" class="cursor-pointer underline text-blue-500">
+            Preview available.
+          </a>
         {% else %}
           <p class="mb-6">No preview available.</p>
         {% endif %}
-        <button class="closeModal bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-          Close
+
+        <div class="mb-4 mt-2 flex justify-center">
+          <label for="publicCheckbox" class="flex items-center">
+            <input id="publicCheckbox" type="checkbox" class="peer-checkbox w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500" {% if item.is_public %}checked{% endif %}>
+            <span class="ml-2 text-sm font-medium text-gray-900">Make Public</span>
+          </label>
+        </div>
+
+        <div class="mb-4">
+          <label for="renameInput" class="block text-sm font-medium text-gray-900">Rename File</label>
+          <div class="border border-gray-300 rounded px-3 py-2">
+            <input id="renameInput" type="text" class="w-full focus:outline-none" value="{{ item.name }}">
+          </div>
+        </div>
+
+        <button id="cancelButton" class="closeModal bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+          Cancel
+        </button>
+        <button id="saveButton" class="closeModal bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onclick="saveChanges('{{ item.unique_id }}')">
+          Save
         </button>
       </div>
     </div>
@@ -65,18 +85,46 @@
     const modals = document.querySelectorAll('.modal');
 
     modals.forEach((modal) => {
-      const closeButton = modal.querySelector('.closeModal');
-      closeButton.addEventListener('click', function() {
-        modal.classList.add('hidden');
-      });
+      const closeButtons = modal.querySelectorAll('.closeModal');
 
-      // Close the modal when clicking outside the content area
-      modal.addEventListener('click', function(e) {
-        if (e.target === this) { // Check that the click was not on any child elements
-          this.classList.add('hidden');
-        }
-      });
+      closeButtons.forEach((button) => {
+        button.addEventListener('click', function() {
+          modal.classList.add('hidden');
+        });
+      })
     });
+
+    function saveChanges(unique_id) {
+      const publicCheckbox = document.getElementById('publicCheckbox');
+      const renameInput = document.getElementById('renameInput');
+
+      const makePublic = publicCheckbox.checked;
+      const newName = renameInput.value;
+
+      const requestData = {
+        makePublic: makePublic,
+        newName: newName
+      };
+
+      fetch('/files/update/' + unique_id, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestData)
+      })
+      .then(response => {
+        if (response.ok) {
+          location.reload();
+        } else {
+          console.log('POST request failed');
+        }
+      })
+      .catch(error => {
+        console.log('Error:', error);
+      });
+    };
+
   </script>
 </div>
 
