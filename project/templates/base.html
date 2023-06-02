@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cloud Uploader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <header class="bg-blue-500">
+        <nav class="container mx-auto flex items-center justify-between px-4 py-4">
+            <a href="{{ url_for('main.index') }}" class="text-white font-bold">Home</a>
+            <ul class="flex space-x-4">
+                {% if current_user.is_authenticated %}
+                    <li><a href="{{ url_for('files.files_index') }}" class="text-white">Documents</a></li>
+                    <li><a href="{{ url_for('auth.logout') }}" class="text-white">Logout</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('auth.login') }}" class="text-white">Login</a></li>
+                    <li><a href="{{ url_for('auth.register') }}" class="text-white">Register</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <div class="container mx-auto mt-8">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </main>
+</body>
+</html>

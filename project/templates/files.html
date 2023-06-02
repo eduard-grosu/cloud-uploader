@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+    <div class="bg-red-500 text-white px-4 py-2 mb-4">{{ messages[0] }}</div>
+{% endif %}
+{% endwith %}
+
+<h1 class="text-4xl font-bold">
+  Welcome, {{ name }}!
+</h1>
+
+<div class="bg-white shadow-md p-6 mt-8">
+  <h1 class="text-2xl font-bold">File Upload</h1>
+  <form method="POST" action="/files/upload" enctype="multipart/form-data" class="mt-4">
+    <div class="mb-4">
+      <label for="file" class="text-lg font-semibold">Choose a file:</label>
+      <input type="file" name="file" id="file" required class="mt-2">
+    </div>
+    <input type="submit" value="Upload" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+  </form>
+</div>
+
+<div class="bg-white shadow-md p-6 mt-8">
+  {% for item in items %}
+    <!-- Generate the modal opening link -->
+    <li class="py-2">
+      <a href="#" class="openModal cursor-pointer underline text-blue-500" data-modal="modal{{ loop.index }}">
+        {{ item.filename }}
+      </a>
+      <button class="deleteButton ml-2 bg-red-500 text-white py-1 px-2 rounded" onclick="window.location.href='/files/delete/{{ item.id }}'">Delete</button>
+      <button class="previewButton ml-2 bg-blue-500 text-white py-1 px-2 rounded" onclick="window.location.href='/files/download/{{ item.id }}'">Download</button>
+    </li>
+
+    <!-- Generate the modal -->
+    <div id="modal{{ loop.index }}" class="modal hidden fixed top-0 left-0 w-full h-full flex items-center justify-center" style="background-color: rgba(0,0,0,0.5);">
+      <div class="bg-white rounded shadow-lg p-4 sm:p-8 mx-2 sm:mx-4 max-w-full sm:max-w-xl md:max-w-2xl lg:max-w-3xl overflow-auto text-center">
+        <h1 class="text-xl sm:text-2xl font-bold mb-4">{{ item.filename }}</h1>
+        {% if item.filename.endswith('.png') %}
+          <p class="mb-6">test</p>
+        {% else %}
+          <p class="mb-6">No preview available.</p>
+        {% endif %}
+        <button class="closeModal bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+          Close
+        </button>
+      </div>
+    </div>
+  {% endfor %}
+
+  <script>
+    const modalLinks = document.querySelectorAll('.openModal');
+
+    modalLinks.forEach((link) => {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        const modalId = this.getAttribute('data-modal');
+        const modal = document.getElementById(modalId);
+        modal.classList.remove('hidden');
+      });
+    });
+
+    const modals = document.querySelectorAll('.modal');
+
+    modals.forEach((modal) => {
+      const closeButton = modal.querySelector('.closeModal');
+      closeButton.addEventListener('click', function() {
+        modal.classList.add('hidden');
+      });
+
+      // Close the modal when clicking outside the content area
+      modal.addEventListener('click', function(e) {
+        if (e.target === this) { // Check that the click was not on any child elements
+          this.classList.add('hidden');
+        }
+      });
+    });
+  </script>
+</div>
+
+{% endblock %}

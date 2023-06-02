@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-sm mx-auto">
+    <h3 class="text-2xl font-bold mb-4">Register</h3>
+    <div class="bg-white shadow rounded px-8 pt-6 pb-8 mb-4">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="bg-red-500 text-white px-4 py-2 mb-4">{{ messages[0] }}. Go to <a href="{{ url_for('auth.login') }}">login page</a>.</div>
+        {% endif %}
+        {% endwith %}
+        <form method="POST" action="/register">
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="email">Email</label>
+                <input id="email" type="email" name="email" placeholder="Email" autofocus
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="name">Name</label>
+                <input id="name" type="text" name="name" placeholder="Name" autofocus
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div class="mb-6">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="password">Password</label>
+                <input id="password" type="password" name="password" placeholder="Password"
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full"
+                type="submit">Register</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
