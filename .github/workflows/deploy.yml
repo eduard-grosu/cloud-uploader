@@ -22,6 +22,9 @@ jobs:
         if: github.event.inputs.confirmation == 'true'
         run: echo "Deployment confirmed."
 
+      - name: Build Docker image
+        run: docker build -t cloud-uploader .
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v2
         with:
@@ -29,16 +32,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v4
-        with:
-          images: ghcr.io/cloud-uploader
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+      - name: Push Docker image to GitHub Container Registry
+        run: |
+          docker tag cloud-uploader ghcr.io/${{ github.repository_owner }}/cloud-uploader
+          docker push ghcr.io/${{ github.repository_owner }}/cloud-uploader
