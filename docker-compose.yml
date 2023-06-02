@@ -1,0 +1,10 @@
+version: "3"
+
+services:
+  cloud-uploader:
+    image: ghcr.io/eduard-grosu/cloud-uploader
+    container_name: cloud-uploader
+    ports:
+      - "5001:5001"  # Mapping container port 5001 to host port 5001
+    volumes:
+      - ./instance/db.sqlite:/app/instance/db.sqlite
