@@ -7,19 +7,21 @@ from flask import (
     url_for,
     jsonify,
     flash,
-    send_file
+    send_file,
+    current_app
 )
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 from cryptography.fernet import Fernet
-from . import db
-from .models import File, User
 import os
 import base64
 import uuid
 import io
+
+from . import db
+from .models import File, User
 
 
 files = Blueprint('files', __name__)
@@ -64,7 +66,9 @@ def decrypt_file(password, file):
         cipher = Fernet(key)
         return cipher.decrypt(encrypted_data)
     except Exception as e:
-        print(f"Eroare de decriptare: {str(e)}")
+        current_app.logger.error(
+            f'User {current_user.email} has failed to decrypt {file.name} with UID={file.unique_id}'
+        )
         flash('Decryption error. Please contact the site administrator.')
         return redirect(url_for('files.files_index'))
 
@@ -116,6 +120,10 @@ def upload():
         with open(path, 'wb') as f:
             f.write(encrypted_data)
 
+        current_app.logger.info(
+            f'User {current_user.email} has uploaded file {name} with UID={unique_id}'
+        )
+
     return redirect(url_for('files.files_index'))
 
 
@@ -145,6 +153,11 @@ def download(unique_id):
     response.headers['Content-Type'] = 'application/octet-stream'
     response.headers['Content-Disposition'] = f'attachment; filename="{file.name}"'
 
+    email = current_user.email if current_user.is_authenticated else 'anonymous'
+    current_app.logger.info(
+        f'User {email} has downloaded file {file.name} with UID={unique_id}'
+    )
+
     return response
 
 
@@ -169,10 +182,16 @@ def preview(unique_id):
 
     decrypted_data = decrypt_file(user.password, file)
     if file.name.endswith(tuple(mime_types.keys())):
+        email = current_user.email if current_user.is_authenticated else 'anonymous'
+        current_app.logger.info(
+            f'User {email} has previewed file {file.name} with UID={unique_id}'
+        )
+
         return send_file(
             io.BytesIO(decrypted_data),
             mimetype=mime_types[os.path.splitext(file.name)[1]]
         )
+
 
     flash('This file cannot be previewed.')
     return redirect(url_for('files.files_index'))
@@ -192,6 +211,10 @@ def delete(unique_id):
     # remove file from disk as well
     os.remove(file.path)
 
+    current_app.logger.info(
+        f'User {current_user.email} has deleted file {file.name} with UID={unique_id}'
+    )
+
     return redirect(url_for('files.files_index'))
 
 
@@ -208,5 +231,9 @@ def update(unique_id):
     file.is_public = json_data['makePublic']
 
     db.session.commit()
+
+    current_app.logger.info(
+        f'User {current_user.email} has updated file {file.name} with UID={unique_id}'
+    )
 
     return redirect(url_for('files.files_index'))

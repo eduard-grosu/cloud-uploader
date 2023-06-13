@@ -1,9 +1,44 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
+from logging.config import dictConfig
+
+dictConfig({
+    'version': 1,
+    'formatters': {
+        'default': {
+            'format': '[{asctime}] [{levelname:<7}] {name}: {message}',
+            'datefmt': '%d-%m-%Y %H:%M:%S',
+            'style': '{'
+        }
+    },
+    'handlers': {
+        'wsgi': {
+            'class': 'logging.StreamHandler',
+            'stream': 'ext://flask.logging.wsgi_errors_stream',
+            'formatter': 'default'
+        },
+        'file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'flask.log',
+            'formatter': 'default',
+            'maxBytes': 10**6*5, # 5mb
+            'backupCount': 3
+        }
+    },
+    'root': {
+        'level': 'INFO',
+        'handlers': [
+            'wsgi',
+            'file'
+        ]
+    }
+})
+
 
 db = SQLAlchemy()
 sessions = dict()
+
 
 def create_app():
     app = Flask(__name__)
